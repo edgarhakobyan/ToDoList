@@ -7,16 +7,17 @@
 //
 
 import UIKit
+import CoreData
 
 class ToDoListViewController: UITableViewController {
     var itemArray = [Item]()
     
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        loadData()
+        loadItems()
     }
     
     //    MARK: - TableView DataSource Methods
@@ -52,8 +53,10 @@ class ToDoListViewController: UITableViewController {
         let alert = UIAlertController(title: "Add new today item", message: "", preferredStyle: .alert)
         
         let action = UIAlertAction(title: "Add item", style: .default) { (action) in
-            let item = Item()
+            
+            let item = Item(context: self.context)
             item.title = textField.text!
+            item.done = false
             
             self.itemArray.append(item)
             
@@ -69,26 +72,45 @@ class ToDoListViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
+    //    MARK: - Helper functions
+    
     func saveItems() {
-        let encoder = PropertyListEncoder()
         do {
-            let data = try encoder.encode(itemArray)
-            try data.write(to: dataFilePath!)
+            try context.save()
         } catch {
-            print("Error on array encoding \(error)")
+            print("Error on saving context \(error)")
         }
         tableView.reloadData()
     }
     
-    func loadData() {
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()) {
         do {
-            let data = try Data(contentsOf: dataFilePath!)
-            let decoder = PropertyListDecoder()
-            itemArray = try decoder.decode([Item].self, from: data)
+            itemArray = try context.fetch(request)
         } catch {
-            print("Error on array decoding \(error)")
+            print("Error on fetching context \(error)")
         }
+        tableView.reloadData()
     }
     
+}
+
+//MARK: - Search bar extention
+
+extension ToDoListViewController: UISearchBarDelegate {
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request: NSFetchRequest<Item> = Item.fetchRequest()
+        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        loadItems(with: request)
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 {
+            loadItems()
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        }
+    }
 }
 
