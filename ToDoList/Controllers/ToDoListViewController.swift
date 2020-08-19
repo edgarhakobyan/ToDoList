@@ -8,20 +8,47 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class ToDoListViewController: SwipeTableViewController {
-    // Get the default Realm
-    let realm = try! Realm()
+    @IBOutlet weak var searchBar: UISearchBar!
     
-    var items: Results<Item>?
+    //MARK: - Properties
+    
+    private let realm = try! Realm()
+    
+    private var items: Results<Item>?
+    
     var selectedCategory: Category? {
         didSet {
             loadItems()
         }
     }
     
+    //MARK: - Lifecycle Methods
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        tableView.separatorStyle = .none
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        if let colorHex = selectedCategory?.color {
+            title = selectedCategory?.name
+            
+            guard let navBar = navigationController?.navigationBar else {
+                fatalError("Navigation controller does not exists")
+            }
+            if let navBarcolor = UIColor(hexString: colorHex) {
+                let contrastColor = ContrastColorOf(navBarcolor, returnFlat: true)
+                navBar.backgroundColor = navBarcolor
+                navBar.tintColor = contrastColor
+                navBar.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: contrastColor]
+                searchBar.barTintColor = navBarcolor
+            }
+            
+        }
     }
     
     //    MARK: - TableView DataSource Methods
@@ -36,6 +63,10 @@ class ToDoListViewController: SwipeTableViewController {
         if let item = items?[indexPath.row] {
             cell.textLabel?.text = item.title
             cell.accessoryType = item.done ? .checkmark : .none
+            if let color = UIColor(hexString: selectedCategory!.color)?.darken(byPercentage: CGFloat(indexPath.row) / CGFloat(items!.count)) {
+                cell.backgroundColor = color
+                cell.textLabel?.textColor = ContrastColorOf(color, returnFlat: true)
+            }
         } else {
             cell.textLabel?.text = "No items added"
         }

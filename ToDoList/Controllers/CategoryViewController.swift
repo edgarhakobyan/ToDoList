@@ -8,17 +8,28 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class CategoryViewController: SwipeTableViewController {
-    // Get the default Realm
-    let realm = try! Realm()
     
-    var categories: Results<Category>?
+    //MARK: - Properties
+    
+    private let realm = try! Realm()
+    
+    private var categories: Results<Category>?
+    
+    //MARK: - Lifecycle Methods
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        tableView.separatorStyle = .none
         loadCategories()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.navigationBar.backgroundColor = UIColor(hexString: "1D9BF6")
     }
     
     //MARK: - TableView DataSource Methods
@@ -29,7 +40,13 @@ class CategoryViewController: SwipeTableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
-        cell.textLabel?.text = categories?[indexPath.row].name ?? "There is no category"
+        if let category = categories?[indexPath.row] {
+            cell.textLabel?.text = category.name
+            if let color = UIColor(hexString: category.color) {
+                cell.backgroundColor = color
+                cell.textLabel?.textColor = ContrastColorOf(color, returnFlat: true)
+            }
+        }
         return cell
     }
     
@@ -86,6 +103,7 @@ class CategoryViewController: SwipeTableViewController {
         let action = UIAlertAction(title: "Add", style: .default) { (action) in
             let newCategory = Category()
             newCategory.name = textField.text!
+            newCategory.color = UIColor.randomFlat().hexValue()
             
             self.save(category: newCategory)
         }
