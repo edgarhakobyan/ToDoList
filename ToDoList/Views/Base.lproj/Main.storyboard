@@ -6,7 +6,7 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--ToDo-->
+        <!--Categories-->
         <scene sceneID="413-jH-XQm">
             <objects>
                 <tableViewController id="ibr-3v-qIS" customClass="CategoryViewController" customModule="ToDoList" customModuleProvider="target" sceneMemberID="viewController">
@@ -29,7 +29,7 @@
                             <outlet property="delegate" destination="ibr-3v-qIS" id="Jmb-30-Ix7"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="ToDo" id="fdV-L3-6Jt">
+                    <navigationItem key="navigationItem" title="Categories" id="fdV-L3-6Jt">
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="iG5-Fo-0BC">
                             <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <connections>
